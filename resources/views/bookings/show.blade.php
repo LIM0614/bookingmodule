@@ -3,16 +3,18 @@
 @section('content')
     <div class="container py-4">
 
-        {{-- 固定回到列表，不用 previous() --}}
-        <a href="{{ route('bookings.index') }}" class="btn btn-secondary mb-3">
-            ← Back to My Bookings
-        </a>
+        {{-- 1) Only show “Back” when there is NO success flash --}}
+        @unless(session('success'))
+            <a href="{{ route('bookings.index') }}" class="btn btn-secondary mb-3">
+                ← Back to My Bookings
+            </a>
+        @endunless
 
-        {{-- 如果有 update() 带来的 success flash --}}
+        {{-- 2) If we just created/updated, show success and have its “×” go home --}}
         @if(session('success'))
             <div class="alert alert-success alert-dismissible fade show" role="alert">
                 {{ session('success') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                <a href="{{ route('bookings.index') }}" class="btn-close" aria-label="Close"></a>
             </div>
         @endif
 

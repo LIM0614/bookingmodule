@@ -26,13 +26,12 @@
                 <label for="room_id" class="form-label">🏨 Select Room</label>
                 <select name="room_id" id="room_id" class="form-select @error('room_id') is-invalid @enderror">
                     @foreach($rooms as $room)
-                        <option value="{{ $room->id }}" {{ old('room_id', $booking->room_id) == $room->id ? 'selected' : '' }}
-                            @if($room->capacity === 0 && $room->id != $booking->room_id) disabled @endif>
+                        <option value="{{ $room->id }}" @if($room->capacity === 0) disabled @endif {{ old('room_id') == $room->id ? 'selected' : '' }}>
                             {{ $room->name }}
-                            @if($room->capacity === 0 && $room->id != $booking->room_id)
-                                (已满)
+                            @if($room->capacity === 0)
+                                （Full）
                             @else
-                                (剩余 {{ $room->capacity }} 间)
+                                （Remaining {{ $room->capacity }} room）
                             @endif
                         </option>
                     @endforeach
