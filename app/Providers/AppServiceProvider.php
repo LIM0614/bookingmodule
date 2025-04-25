@@ -6,6 +6,9 @@ use Illuminate\Support\ServiceProvider;
 use App\Services\BookingServiceInterface;
 use App\Services\RealBookingService;
 use App\Services\BookingServiceProxy;
+use App\Listeners\InvalidateOtherSessions;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Auth\Events\Login;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -14,14 +17,20 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        // 先绑定真实服务
-        $this->app->singleton(RealBookingService::class, RealBookingService::class);
+        // 1) Register the real implementation so the proxy can resolve it:
+        $this->app->singleton(
+            RealBookingService::class,
+            RealBookingService::class
+        );
 
-        // 再用 Proxy 包裹真实服务，注入到接口
-        $this->app->bind(BookingServiceInterface::class, function ($app) {
-            $real = $app->make(RealBookingService::class);
-            return new BookingServiceProxy($real);
-        });
+        // 2) Make BookingServiceInterface resolve to the proxy:
+        $this->app->bind(
+            BookingServiceInterface::class,
+            function ($app) {
+                $real = $app->make(RealBookingService::class);
+                return new BookingServiceProxy($real);
+            }
+        );
     }
 
     /**
@@ -29,6 +38,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // 每次用户登录时，调用我们的 InvalidateOtherSessions
+        Event::listen(
+            Login::class,
+            InvalidateOtherSessions::class
+        );
     }
 }

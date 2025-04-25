@@ -13,6 +13,7 @@ class Booking extends Model
         'contact_number',
         'number_guest',
         'room_id',
+        'room_unit_number',   // ← add this!
         'check_in_date',
         'check_out_date',
         'status',
@@ -27,6 +28,15 @@ class Booking extends Model
     public function room()
     {
         return $this->belongsTo(Room::class);
+    }
+
+    public function unit()
+    {
+        return $this->belongsTo(
+            RoomUnit::class,
+            'room_unit_number',  // FK on bookings
+            'unit_number'        // PK on room_units
+        );
     }
 
 }

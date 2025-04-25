@@ -5,43 +5,50 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
-        Schema::create('bookings', function (Blueprint $table) {
+        Schema::create('bookings', function (Blueprint $table): void {
             $table->id();
 
-            // ➕ Add the columns first
-            $table->unsignedBigInteger('user_id');
+            // 1) Link to users
+            $table->foreignId('user_id')
+                ->constrained('users')
+                ->cascadeOnDelete();
+
+            // 2) Guest info
             $table->string('name');
             $table->string('ic_passport');
-            $table->integer('contact_number');
+            $table->string('contact_number');
             $table->integer('number_guest');
-            $table->unsignedBigInteger('room_id');
 
-            // ➕ THEN add foreign keys
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
-            $table->foreign('room_id')->references('id')->on('rooms')->onDelete('cascade');
+            // 3) Room type
+            $table->foreignId('room_id')
+                ->constrained('rooms')
+                ->cascadeOnDelete();
 
-            // Booking details
+            // 4) Concrete unit (no ->after())
+            $table->string('room_unit_number')
+                ->nullable();
+
+            // 5) Dates & status
             $table->date('check_in_date');
             $table->date('check_out_date');
             $table->string('status')->default('pending');
 
+            // 6) Computed duration
             $table->integer('duration')
                 ->storedAs('DATEDIFF(check_out_date, check_in_date)');
 
             $table->timestamps();
+
+            // 7) Now apply the FK constraint
+            $table->foreign('room_unit_number')
+                ->references('unit_number')
+                ->on('room_units')
+                ->nullOnDelete();
         });
     }
 
-
-
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('bookings');

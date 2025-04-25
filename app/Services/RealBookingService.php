@@ -3,6 +3,7 @@ namespace App\Services;
 
 use App\Models\Booking;
 use App\Models\Room;
+use App\Models\RoomUnit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -23,13 +24,28 @@ class RealBookingService implements BookingServiceInterface
     public function create(array $data): Booking
     {
         return DB::transaction(function () use ($data) {
+            // 1) Ensure capacity
             $room = Room::findOrFail($data['room_id']);
             if ($room->capacity < 1) {
                 abort(422, '房型剩余不足');
             }
-            $room->decrement('capacity', 1);
+
+            // 2) Lock & grab one free unit
+            $unit = RoomUnit::where('room_id', $room->id)
+                ->where('status', 'available')
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            // 3) Mark it booked
+            $unit->update(['status' => 'booked']);
+
+            // 4) Decrement cached capacity (optional)
+            $room->decrement('capacity');
+
+            // 5) Create the booking, storing that unit’s number
             return Booking::create($data + [
                 'status' => 'pending',
+                'room_unit_number' => $unit->unit_number,
             ]);
         });
     }
@@ -53,11 +69,21 @@ class RealBookingService implements BookingServiceInterface
 
     public function cancel(int $id, int $userId): void
     {
-        DB::transaction(function () use ($id) {
+        DB::transaction(function () use ($id, $userId) {
             $booking = Booking::findOrFail($id);
-            // …（原 cancel() 里逻辑）
+            abort_unless($booking->user_id === $userId, 403);
+            // your “one-week” check here…
+
+            // 1) Mark booking cancelled
             $booking->update(['status' => 'cancelled']);
-            $booking->room->increment('capacity', 1);
+
+            // 2) Release the unit
+            if ($unit = $booking->unit) {
+                $unit->update(['status' => 'available']);
+            }
+
+            // 3) Restore capacity
+            $booking->room->increment('capacity');
         });
     }
 }
