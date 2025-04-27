@@ -13,9 +13,6 @@ class BookingController extends Controller
 
     public function __construct(BookingServiceInterface $bookingService)
     {
-        // —– FOR DEV / TESTING: auto-login user #1 —–
-        Auth::loginUsingId(1);
-
         $this->middleware('auth');
         $this->bookingService = $bookingService;
     }

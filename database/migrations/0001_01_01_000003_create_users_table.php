@@ -15,6 +15,8 @@ return new class extends Migration {
             $table->String('ic_passport');
             $table->integer('phone_number');
             $table->string('name');       // User name
+            $table->string('email')->unique();
+            $table->string('password');
             $table->timestamps();         // Created_at & updated_at
         });
     }
