@@ -11,41 +11,48 @@ class AdminBookingController extends Controller
 {
     public function __construct()
     {
-        // 为测试自动登录 ID=1
-        Auth::loginUsingId(1);
+        // 必须通过 Admin Guard 登录
+        $this->middleware('auth:admin');
 
-        // 必须登录
-        $this->middleware('auth');
-
-        // 仅允许 ID=1 访问
-        $this->middleware(function ($req, $next) {
-            if (Auth::id() !== 1) {
+        // 只允许 ID = 1 的 Super Admin 访问
+        $this->middleware(function ($request, $next) {
+            if (auth('admin')->id() != 1) {
                 abort(403, 'Only Super Admin can access.');
             }
-            return $next($req);
+            return $next($request);
         });
     }
 
-    public function index(Request $request)
+    /**
+     * 查看所有预订（带过滤）
+     */
+    public function index(Request $request): \Illuminate\Http\JsonResponse|\Illuminate\View\View
     {
+        header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+        header("Pragma: no-cache");
+        header("Expires: Sat, 01 Jan 1990 00:00:00 GMT");
+
         $query = Booking::with(['user', 'room'])
             ->orderBy('check_in_date', 'asc');
 
-        // 筛选：用户名（模糊）
+        // 过滤：用户名字
         if ($request->filled('user_name')) {
             $query->whereHas('user', function ($q) use ($request) {
                 $q->where('name', 'like', '%' . $request->user_name . '%');
             });
         }
-        // 筛选：状态
+
+        // 过滤：状态
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
-        // 筛选：房型
+
+        // 过滤：房间
         if ($request->filled('room_id')) {
             $query->where('room_id', $request->room_id);
         }
-        // 筛选：入住日期区间
+
+        // 过滤：入住时间段
         if ($request->filled('date_from')) {
             $query->whereDate('check_in_date', '>=', $request->date_from);
         }
@@ -53,10 +60,9 @@ class AdminBookingController extends Controller
             $query->whereDate('check_in_date', '<=', $request->date_to);
         }
 
-        // 每页 20 条
         $bookings = $query->paginate(20)->withQueryString();
 
-        // 如果是 AJAX 请求，就返回局部渲染的 HTML 和下一页 URL
+        // 如果是 AJAX 请求
         if ($request->ajax()) {
             return response()->json([
                 'html' => view('admin.bookings.partials.list', compact('bookings'))->render(),
@@ -64,26 +70,35 @@ class AdminBookingController extends Controller
             ]);
         }
 
-        // 首次加载，返回完整视图
+        // 正常页面请求
         $rooms = Room::all();
         return view('admin.bookings.index', compact('bookings', 'rooms'));
     }
 
-    public function show(Booking $booking)
+    /**
+     * 查看单一预订详情
+     */
+    public function show(Booking $booking): \Illuminate\View\View
     {
         $booking->load(['user', 'room']);
         return view('admin.bookings.show', compact('booking'));
     }
 
-    public function forceCancel(Booking $booking)
+    /**
+     * 强制取消预订（管理员权限）
+     */
+    public function forceCancel(Booking $booking): \Illuminate\Http\RedirectResponse
     {
         if ($booking->status !== 'cancelled') {
-            $booking->update(['status' => 'cancelled']);
-            $booking->room()->increment('capacity', $booking->number_guest);
+            $booking->update([
+                'status' => 'cancelled',
+            ]);
+
+            $booking->room->increment('capacity', $booking->number_guest);
         }
 
         return redirect()
             ->route('admin.bookings.index')
-            ->with('success', 'Booking force‑cancelled.');
+            ->with('success', 'Booking forcefully cancelled.');
     }
 }

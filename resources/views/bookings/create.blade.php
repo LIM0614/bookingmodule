@@ -4,7 +4,6 @@
     <div class="container py-4">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2>✍️ Add New Booking</h2>
-            {{-- 🏠 回到首页（我的预订列表） --}}
             <a href="{{ route('bookings.index') }}" class="btn btn-success">
                 🏠 Home
             </a>
@@ -20,30 +19,26 @@
             {{-- 1) Guest Name --}}
             <div class="mb-3">
                 <label for="name" class="form-label">Name</label>
-                <input type="text" id="name" name="name" value="{{ old('name', $user->name) }}"
-                    class="form-control @error('name') is-invalid @enderror" readonly>
+                <input type="text" id="name" name="name" value="{{ Auth::user()->name }}" class="form-control text-white"
+                    style="background-color: #6c757d;" readonly>
             </div>
 
             {{-- 2) IC / Passport --}}
             <div class="mb-3">
                 <label for="ic_passport" class="form-label">IC / Passport</label>
-                <input type="text" id="ic_passport" name="ic_passport" value="{{ old('ic_passport', $user->ic_passport) }}"
-                    class="form-control @error('ic_passport') is-invalid @enderror" readonly>
-                @error('ic_passport')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                @enderror
+                <input type="text" id="ic_passport" name="ic_passport" value="{{ Auth::user()->ic_passport }}"
+                    class="form-control text-white" style="background-color: #6c757d;" readonly>
             </div>
 
             {{-- 3) Contact Phone --}}
             <div class="mb-3">
                 <label for="contact_number" class="form-label">Contact Phone</label>
-                <input type="text" + id="contact_number" name="contact_number"
-                    value="{{ old('contact_number', $user->phone_number) }}"
-                    class="form-control @error('contact_number') is-invalid @enderror" readonly>
-                @error('contact_number')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                @enderror
+                <input type="text" id="contact_number" name="contact_number" value="{{ Auth::user()->phone_number }}"
+                    class="form-control text-white" style="background-color: #6c757d;" readonly>
             </div>
+
+
+
 
             {{-- …then your existing room, dates, status fields… --}}
             {{-- 4) Select Room --}}

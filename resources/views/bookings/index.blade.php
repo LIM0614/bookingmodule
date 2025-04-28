@@ -4,7 +4,7 @@
 @section('content')
     <div class="container py-4">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2>My Upcoming Bookings</h2>
+            <h2>My Bookings</h2>
             <a href="{{ route('bookings.create') }}" class="btn btn-success">+ Add New Booking</a>
         </div>
 

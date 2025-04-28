@@ -27,7 +27,7 @@ class RealBookingService implements BookingServiceInterface
             // 1) Ensure capacity
             $room = Room::findOrFail($data['room_id']);
             if ($room->capacity < 1) {
-                abort(422, '房型剩余不足');
+                abort(422, 'No enough room');
             }
 
             // 2) Lock & grab one free unit
