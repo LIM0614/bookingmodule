@@ -37,30 +37,24 @@
                     class="form-control text-white" style="background-color: #6c757d;" readonly>
             </div>
 
-
-
-
-            {{-- …then your existing room, dates, status fields… --}}
             {{-- 4) Select Room --}}
             <div class="mb-3">
-                <label for="room_id" class="form-label">🏨 Select Room</label>
-                <select name="room_id" id="room_id" class="form-select @error('room_id') is-invalid @enderror">
-                    <option value="">Choose a room…</option>
-                    @foreach($rooms as $room)
-                        <option value="{{ $room->id }}" @if($room->capacity === 0) disabled @endif {{ old('room_id') == $room->id ? 'selected' : '' }}>
-                            {{ $room->name }}
-                            @if($room->capacity === 0)
-                                （Full）
-                            @else
-                                （Remaining {{ $room->capacity }} room）
-                            @endif
+                <label for="room_type_id" class="form-label">🏨 Select Room Type</label>
+                <select name="room_type_id" id="room_type_id"
+                    class="form-select @error('room_type_id') is-invalid @enderror">
+                    <option value="">Choose a room type...</option>
+                    @foreach($roomTypes as $type)
+                        <option value="{{ $type->id }}" {{ old('room_type_id') == $type->id ? 'selected' : '' }}>
+                            {{ $type->name }} (Remaining {{ $type->capacity }} rooms)
                         </option>
                     @endforeach
                 </select>
-                @error('room_id')
+                @error('room_type_id')
                     <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
+                <div class="form-text text-muted">The system will auto-assign an available room number.</div>
             </div>
+
 
             {{-- 5) Number of Guests --}}
             <div class="mb-3">

@@ -3,69 +3,67 @@
 @section('content')
     <div class="container py-4">
 
+        {{-- Back to list --}}
         <a href="{{ route('bookings.index') }}" class="btn btn-secondary mb-3">
             ← Back to My Bookings
         </a>
 
-        <h2 class="mb-4">✏️ Edit Booking #{{ $booking->id }}</h2>
-
-        {{-- 如果有成功消息，也可在编辑页显示（可选） --}}
+        {{-- Success alert --}}
         @if(session('success'))
             <div class="alert alert-success alert-dismissible fade show" role="alert">
                 {{ session('success') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         @endif
 
-        <form action="{{ route('bookings.update', $booking->id) }}" method="POST" novalidate>
-            @csrf
-            @method('PUT')
-
-            {{-- 1) 房型 --}}
-            <div class="mb-3">
-                <label for="room_id" class="form-label">🏨 Select Room</label>
-                <select name="room_id" id="room_id" class="form-select @error('room_id') is-invalid @enderror">
-                    @foreach($rooms as $room)
-                        <option value="{{ $room->id }}" @if($room->capacity === 0) disabled @endif {{ old('room_id') == $room->id ? 'selected' : '' }}>
-                            {{ $room->name }}
-                            @if($room->capacity === 0)
-                                （Full）
-                            @else
-                                （Remaining {{ $room->capacity }} room）
-                            @endif
-                        </option>
-                    @endforeach
-                </select>
-                @error('room_id')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                @enderror
+        <div class="card shadow-sm rounded-3">
+            <div class="card-header bg-warning text-dark">
+                <h4 class="mb-0">✏️ Edit Booking #{{ $booking->id }}</h4>
             </div>
+            <div class="card-body">
+                <form action="{{ route('bookings.update', $booking->id) }}" method="POST" novalidate>
+                    @csrf
+                    @method('PUT')
 
-            {{-- 2) 日期 --}}
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label for="check_in_date" class="form-label">📅 Check‑In</label>
-                    <input type="date" id="check_in_date" name="check_in_date"
-                        class="form-control @error('check_in_date') is-invalid @enderror" min="{{ now()->toDateString() }}"
-                        value="{{ old('check_in_date', $booking->check_in_date) }}">
-                    @error('check_in_date')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                    @enderror
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label for="check_out_date" class="form-label">📅 Check‑Out</label>
-                    <input type="date" id="check_out_date" name="check_out_date"
-                        class="form-control @error('check_out_date') is-invalid @enderror"
-                        min="{{ now()->addDay()->toDateString() }}"
-                        value="{{ old('check_out_date', $booking->check_out_date) }}">
-                    @error('check_out_date')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                    @enderror
-                    <div class="form-text">Must be at least one day after check‑in.</div>
-                </div>
+                    {{-- Room Type --}}
+                    <div class="mb-4">
+                        <label for="room_type_id" class="form-label">🏨 Select Room Type</label>
+                        <select name="room_type_id" id="room_type_id"
+                            class="form-select @error('room_type_id') is-invalid @enderror">
+                            <option value="">Choose a room type...</option>
+                            @foreach($roomTypes as $type)
+                                <option value="{{ $type->id }}" {{ old('room_type_id', $booking->room_type_id) == $type->id ? 'selected' : '' }}>
+                                    {{ $type->name }} (Remaining {{ $type->capacity }} rooms)
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('room_type_id')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                        <div class="form-text text-muted">The system will automatically assign a room number.</div>
+                    </div>
+
+                    {{-- Dates --}}
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label">📅 Check-In Date</label>
+                            <input type="text" class="form-control" value="{{ $booking->check_in_date }}" readonly>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">📅 Check-Out Date</label>
+                            <input type="text" class="form-control" value="{{ $booking->check_out_date }}" readonly>
+                        </div>
+                        <div class="form-text text-muted">Only allow to change the room type</div>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            💾 Update Booking
+                        </button>
+                    </div>
+                </form>
             </div>
+        </div>
 
-            <button type="submit" class="btn btn-primary">Update Booking</button>
-        </form>
     </div>
 @endsection

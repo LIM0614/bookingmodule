@@ -8,31 +8,36 @@ return new class extends Migration {
     public function up(): void
     {
         // 房型表
-        Schema::create('rooms', function (Blueprint $table): void {
+        Schema::create('room_types', function (Blueprint $table): void {
             $table->id();
             $table->string('name');
             $table->integer('capacity');
+            $table->decimal('price_per_night', 8, 2);
+            $table->text('description')->nullable();
+            $table->json('amenities')->nullable(); // like ["WiFi", "TV"]
+            $table->string('image')->nullable();    // like ["room1.jpg", "room2.jpg"]
             $table->timestamps();
         });
 
-        // 具体房间单元表：主键是 unit_number
-        Schema::create('room_units', function (Blueprint $table): void {
-            // 用 unit_number 做主键
-            $table->string('unit_number')->primary();
-            // 外键连到房型
-            $table->foreignId('room_id')
-                ->constrained('rooms')
-                ->cascadeOnDelete();
-            // 状态
-            $table->enum('status', ['available', 'booked'])
-                ->default('available');
+
+        Schema::create('rooms', function (Blueprint $table): void {
+            $table->id();
+
+            $table->string('room_number')->unique();
+
+            $table->foreignId('room_type_id')
+                ->constrained('room_types')
+                ->OnDelete('cascade');
+
+            $table->enum('status', ['available', 'occupied', 'maintenance', 'cleaning'])->default('available');
+
             $table->timestamps();
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('room_units');
         Schema::dropIfExists('rooms');
+        Schema::dropIfExists('room_types');
     }
 };

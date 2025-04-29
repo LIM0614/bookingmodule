@@ -15,13 +15,12 @@
 
         @if($bookings->isEmpty())
             <div class="alert alert-info">
-                You have no upcoming bookings.
+                You have no bookings yet.
             </div>
         @else
             <table class="table table-striped">
                 <thead>
                     <tr>
-                        <th>#</th>
                         <th>Room</th>
                         <th>Check‑In</th>
                         <th>Check‑Out</th>
@@ -36,18 +35,14 @@
                                 $ci = \Carbon\Carbon::parse($b->check_in_date);
                             @endphp
                             <tr>
-                                <td>{{ $b->id }}</td>
-                                <td>{{ $b->room->name }}</td>
+                                <td>{{ $b->roomType->name}}</td>
                                 <td>{{ $ci->format('d‑M‑Y') }}</td>
                                 <td>{{ \Carbon\Carbon::parse($b->check_out_date)->format('d‑M‑Y') }}</td>
                                 <td>{{ ucfirst($b->status) }}</td>
                                 <td>
-                                    {{-- 如果不是今天，才允许查看 --}}
-                                    @if(!$ci->isToday())
-                                        <a href="{{ route('bookings.show', $b->id) }}" class="btn btn-sm btn-info me-1">
-                                            View
-                                        </a>
-                                    @endif
+                                    <a href="{{ route('bookings.show', $b->id) }}" class="btn btn-sm btn-info me-1">
+                                        View
+                                    </a>
 
                                     {{-- 只有“pending”且不是今天，才允许编辑或取消 --}}
                                     @if($b->status === 'pending' && !$ci->isToday())

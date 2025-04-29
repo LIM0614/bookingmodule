@@ -1,89 +1,117 @@
 <?php
+
 namespace App\Services;
 
 use App\Models\Booking;
-use App\Models\Room;
-use App\Models\RoomUnit;
-use Illuminate\Http\Request;
+use App\Models\RoomType;
 use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
+use Carbon\Carbon;
 
 class RealBookingService implements BookingServiceInterface
 {
     public function listUpcoming(int $userId): Collection
     {
         $today = Carbon::today()->toDateString();
-        return Booking::with('room')
+
+        return Booking::with('roomType')
             ->where('user_id', $userId)
-            ->whereDate('check_in_date', '>=', $today)
+            ->where('check_in_date', '>=', $today)
             ->orderBy('check_in_date')
             ->get();
     }
 
     public function create(array $data): Booking
     {
-        return DB::transaction(function () use ($data) {
-            // 1) Ensure capacity
-            $room = Room::findOrFail($data['room_id']);
-            if ($room->capacity < 1) {
-                abort(422, 'No enough room');
+        return DB::transaction(function () use ($data): Booking {
+            $roomType = RoomType::findOrFail($data['room_type_id']);
+
+            if ($roomType->capacity < 1) {
+                abort(422, 'No available room capacity for this room type.');
             }
 
-            // 2) Lock & grab one free unit
-            $unit = RoomUnit::where('room_id', $room->id)
+
+            $room = \App\Models\Room::where('room_type_id', $roomType->id)
                 ->where('status', 'available')
-                ->lockForUpdate()
                 ->firstOrFail();
 
-            // 3) Mark it booked
-            $unit->update(['status' => 'booked']);
 
-            // 4) Decrement cached capacity (optional)
-            $room->decrement('capacity');
+            $roomType->decrement('capacity');
+            $room->update(['status' => 'occupied']);
 
-            // 5) Create the booking, storing that unit’s number
+
+            $data['room_id'] = $room->id;
+
             return Booking::create($data + [
                 'status' => 'pending',
-                'room_unit_number' => $unit->unit_number,
             ]);
         });
     }
 
+
     public function show(int $id, int $userId): Booking
     {
-        $booking = Booking::with('room')->findOrFail($id);
-        return $booking;
+        return Booking::with(['roomType', 'room'])
+            ->where('id', $id)
+            ->where('user_id', $userId)
+            ->firstOrFail();
     }
 
     public function update(int $id, array $data, int $userId): Booking
     {
-        return DB::transaction(function () use ($id, $data) {
-            $booking = Booking::findOrFail($id);
-            // …（与原来 update() 同逻辑：capacity ++/–）
-            return tap($booking, function ($b) use ($data) {
-                $b->update($data);
-            });
+        return DB::transaction(function () use ($id, $data, $userId): Booking {
+            $booking = Booking::with('room', 'roomType')->where('id', $id)
+                ->where('user_id', $userId)->firstOrFail();
+
+            if ($data['room_type_id'] != $booking->room_type_id) {
+
+                $booking->room->update(['status' => 'available']);
+                $booking->roomType->increment('capacity');
+
+                $newRoomType = RoomType::findOrFail($data['room_type_id']);
+
+                if ($newRoomType->capacity < 1) {
+                    abort(422, 'No available capacity for the selected room type.');
+                }
+
+                $newRoom = \App\Models\Room::where('room_type_id', $newRoomType->id)
+                    ->where('status', 'available')
+                    ->firstOrFail();
+
+                $newRoomType->decrement('capacity');
+                $newRoom->update(['status' => 'occupied']);
+
+                $booking->update([
+                    'room_type_id' => $data['room_type_id'],
+                    'room_id' => $newRoom->id,
+                ]);
+            }
+
+            return $booking;
         });
     }
 
     public function cancel(int $id, int $userId): void
     {
-        DB::transaction(function () use ($id, $userId) {
-            $booking = Booking::findOrFail($id);
-            abort_unless($booking->user_id === $userId, 403);
-            // your “one-week” check here…
+        DB::transaction(function () use ($id, $userId): void {
+            $booking = Booking::with(['room.roomType'])
+                ->where('id', $id)
+                ->where('user_id', $userId)
+                ->firstOrFail();
 
-            // 1) Mark booking cancelled
-            $booking->update(['status' => 'cancelled']);
+            $sevenDaysBefore = Carbon::now()->addDays(7);
 
-            // 2) Release the unit
-            if ($unit = $booking->unit) {
-                $unit->update(['status' => 'available']);
+            if ($booking->check_in_date < $sevenDaysBefore->toDateString()) {
+                throw new \Exception('Booking cannot be cancelled less than 7 days before check-in.');
             }
 
-            // 3) Restore capacity
-            $booking->room->increment('capacity');
+            // Mark as cancelled
+            $booking->update(['status' => 'cancelled']);
+
+
+            // Restore capacity and room
+            $booking->room->roomType->increment('capacity');
+            $booking->room->update(['status' => 'available']);
         });
     }
 }
