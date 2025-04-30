@@ -39,20 +39,11 @@
 
             {{-- 4) Select Room --}}
             <div class="mb-3">
-                <label for="room_type_id" class="form-label">🏨 Select Room Type</label>
-                <select name="room_type_id" id="room_type_id"
-                    class="form-select @error('room_type_id') is-invalid @enderror">
-                    <option value="">Choose a room type...</option>
-                    @foreach($roomTypes as $type)
-                        <option value="{{ $type->id }}" {{ old('room_type_id') == $type->id ? 'selected' : '' }}>
-                            {{ $type->name }} (Remaining {{ $type->capacity }} rooms)
-                        </option>
-                    @endforeach
-                </select>
-                @error('room_type_id')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                @enderror
-                <div class="form-text text-muted">The system will auto-assign an available room number.</div>
+                <label class="form-label">🏨 Room Type</label>
+                <input type="text" class="form-control text-white" style="background-color: #6c757d;"
+                    value="{{ $roomType->name }} (剩余 {{ $roomType->capacity }} 间)" readonly>
+                {{-- 隐藏字段，把 ID 一并传给后端 --}}
+                <input type="hidden" name="room_type_id" value="{{ $roomType->id }}">
             </div>
 
 

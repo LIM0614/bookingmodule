@@ -4,7 +4,7 @@
     <div class="container py-4">
 
         {{-- Back to list --}}
-        <a href="{{ route('bookings.index') }}" class="btn btn-secondary mb-3">
+        <a href="{{ route('bookings.my') }}" class="btn btn-secondary mb-3">
             ← Back to My Bookings
         </a>
 

@@ -19,23 +19,34 @@ class BookingController extends Controller
         $this->bookingService = $bookingService;
     }
 
-    public function index(): View
+    public function myBookings(): View
+    {
+        $bookings = $this->bookingService->listUpcoming(Auth::guard('web')->id());
+
+        return view('bookings.myBookings', compact('bookings'));
+    }
+
+
+    public function index()
     {
         header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
         header('Pragma: no-cache');
         header('Expires: Sat, 01 Jan 1990 00:00:00 GMT');
 
-        $bookings = $this->bookingService->listUpcoming(Auth::guard('web')->id());
+        // 只取剩余 capacity > 0 的房型
+        $roomTypes = RoomType::where('capacity', '>', 0)
+            ->orderBy('name')
+            ->get();
 
-        return view('bookings.index', compact('bookings'));
+        return view('bookings.index', compact('roomTypes'));
     }
 
-    public function create(): View
-    {
-        $roomTypes = RoomType::where('capacity', '>', 0)->get();
-        $user = Auth::guard('web')->user();
 
-        return view('bookings.create', compact('roomTypes', 'user'));
+    public function create($roomTypeId): View
+    {
+        $roomType = RoomType::findOrFail($roomTypeId);
+
+        return view('bookings.create', compact('roomType'));
     }
 
     public function store(Request $request): RedirectResponse

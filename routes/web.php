@@ -29,14 +29,24 @@ Route::post('/login', [LoginController::class, 'login'])
 
 Route::middleware('auth:web')->group(function () {
 
-    Route::get('/bookings', [BookingController::class, 'index'])->name('home');
+    Route::get('/bookings', [BookingController::class, 'index'])->name('bookings.index');
 
+    Route::get('/bookings/myBookings', [BookingController::class, 'myBookings'])->name('bookings.my');
 
-    Route::resource('bookings', BookingController::class)->except(['destroy']);
+    Route::get('/bookings/create/{roomTypeId}', [BookingController::class, 'create'])->name('bookings.create');
 
+    Route::post('/bookings', [BookingController::class, 'store'])->name('bookings.store');
 
-    Route::get('bookings/{booking}/cancel', [BookingController::class, 'showCancel'])->name('bookings.cancel.confirm');
-    Route::post('bookings/{booking}/cancel', [BookingController::class, 'cancel'])->name('bookings.cancel');
+    Route::get('/bookings/{booking}', [BookingController::class, 'show'])->name('bookings.show');
+
+    Route::get('/bookings/{booking}/edit', [BookingController::class, 'edit'])->name('bookings.edit');
+
+    Route::put('/bookings/{booking}/update', [BookingController::class, 'update'])->name('bookings.update');
+
+    Route::get('/bookings/{booking}/cancel', [BookingController::class, 'showCancel'])->name('bookings.cancel.confirm');
+
+    Route::post('/bookings/{booking}/cancel', [BookingController::class, 'cancel'])->name('bookings.cancel');
+
 });
 
 

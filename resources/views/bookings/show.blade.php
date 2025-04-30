@@ -5,7 +5,7 @@
 
         {{-- Back Button --}}
         @unless(session('success'))
-            <a href="{{ route('bookings.index') }}" class="btn btn-secondary mb-3">
+            <a href="{{ route('bookings.my') }}" class="btn btn-secondary mb-3">
                 ← Back to My Bookings
             </a>
         @endunless
@@ -14,7 +14,7 @@
         @if(session('success'))
             <div class="alert alert-success alert-dismissible fade show" role="alert">
                 {{ session('success') }}
-                <a href="{{ route('bookings.index') }}" class="btn-close" aria-label="Close"></a>
+                <a href="{{ route('bookings.my') }}" class="btn-close" aria-label="Close"></a>
             </div>
         @endif
 

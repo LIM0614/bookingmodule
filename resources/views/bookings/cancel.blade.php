@@ -28,7 +28,7 @@
                         <div class="flex-grow-1">
                             {{ session('error') }}
                         </div>
-                        <a href="{{ route('bookings.index') }}" class="btn-close" aria-label="Close"></a>
+                        <a href="{{ route('bookings.my') }}" class="btn-close" aria-label="Close"></a>
                     </div>
 
                     {{-- 3. Not eligible (less than 7 days) --}}
@@ -36,7 +36,7 @@
                     <div class="alert alert-warning">
                         ❌ This booking cannot be cancelled less than <strong>7 days</strong>
                     </div>
-                    <a href="{{ route('bookings.index') }}" class="btn btn-secondary">← Back</a>
+                    <a href="{{ route('bookings.my') }}" class="btn btn-secondary">← Back</a>
 
                     {{-- 4. Eligible to cancel --}}
                 @else
@@ -63,7 +63,7 @@
                         </button>
                     </form>
 
-                    <a href="{{ route('bookings.index') }}" class="btn btn-secondary btn-lg ms-3">
+                    <a href="{{ route('bookings.my') }}" class="btn btn-secondary btn-lg ms-3">
                         ❌ No, Go Back
                     </a>
 
@@ -78,7 +78,7 @@
 
                     <script>
                         setTimeout(function () {
-                            window.location.href = "{{ route('bookings.index') }}";
+                            window.location.href = "{{ route('bookings.my') }}";
                         }, 5000);
                     </script>
                 @endif

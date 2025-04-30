@@ -1,63 +1,46 @@
-{{-- resources/views/bookings/index.blade.php --}}
 @extends('layouts.app')
 
 @section('content')
     <div class="container py-4">
+
+        {{-- Header with title on the left and “My Bookings” button on the right --}}
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2>My Bookings</h2>
-            <a href="{{ route('bookings.create') }}" class="btn btn-success">+ Add New Booking</a>
+            <h2 class="mb-0">Available Hotel Room Types</h2>
+            <a href="{{ route('bookings.my') }}" class="btn btn-outline-primary">
+                My Bookings
+            </a>
         </div>
 
-        {{-- Flash 成功消息 --}}
         @if(session('success'))
             <div class="alert alert-success">{{ session('success') }}</div>
         @endif
 
-        @if($bookings->isEmpty())
-            <div class="alert alert-info">
-                You have no bookings yet.
-            </div>
-        @else
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>Room</th>
-                        <th>Check‑In</th>
-                        <th>Check‑Out</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($bookings as $b)
-                            @php
-                                // 转换成 Carbon 实例，方便判断是否是“今天”
-                                $ci = \Carbon\Carbon::parse($b->check_in_date);
-                            @endphp
-                            <tr>
-                                <td>{{ $b->roomType->name}}</td>
-                                <td>{{ $ci->format('d‑M‑Y') }}</td>
-                                <td>{{ \Carbon\Carbon::parse($b->check_out_date)->format('d‑M‑Y') }}</td>
-                                <td>{{ ucfirst($b->status) }}</td>
-                                <td>
-                                    <a href="{{ route('bookings.show', $b->id) }}" class="btn btn-sm btn-info me-1">
-                                        View
-                                    </a>
+        {{-- Hotel Room Types Section --}}
+        @foreach ($roomTypes as $type)
+            <div class="card mb-4 shadow-sm d-flex flex-row overflow-hidden">
+                {{-- Left: Room Image --}}
+                @if ($type->image)
+                    <img src="{{ asset('images/rooms/' . $type->image) }}" class="img-fluid w-25 object-fit-cover"
+                        style="max-height: 180px;" alt="Room Image">
+                @else
+                    <div class="bg-secondary text-white w-25 d-flex align-items-center justify-content-center"
+                        style="height: 180px;">
+                        No Image
+                    </div>
+                @endif
 
-                                    {{-- 只有“pending”且不是今天，才允许编辑或取消 --}}
-                                    @if($b->status === 'pending' && !$ci->isToday())
-                                        <a href="{{ route('bookings.edit', $b->id) }}" class="btn btn-sm btn-primary me-1">
-                                            Edit
-                                        </a>
-                                        <a href="{{ route('bookings.cancel.confirm', $b->id) }}" class="btn btn-sm btn-danger">
-                                            Cancel
-                                        </a>
-                                    @endif
-                                </td>
-                            </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        @endif
+                {{-- Right: Details --}}
+                <div class="card-body w-75">
+                    <h5 class="card-title">{{ $type->name }}</h5>
+                    <p class="card-text">{{ $type->description }}</p>
+                    <p class="fw-bold">Price: RM {{ number_format($type->price_per_night, 2) }}</p>
+
+                    <form action="{{ route('bookings.create', $type->id) }}" method="GET">
+                        <button type="submit" class="btn btn-primary">Book Now</button>
+                    </form>
+                </div>
+            </div>
+        @endforeach
+
     </div>
 @endsection
