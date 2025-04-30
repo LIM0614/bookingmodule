@@ -27,13 +27,10 @@
 
                     {{-- Room Type --}}
                     <div class="mb-4">
-                        <label for="room_type_id" class="form-label">🏨 Select Room Type</label>
-                        <select name="room_type_id" id="room_type_id"
-                            class="form-select @error('room_type_id') is-invalid @enderror">
-                            <option value="">Choose a room type...</option>
-                            @foreach($roomTypes as $type)
-                                <option value="{{ $type->id }}" {{ old('room_type_id', $booking->room_type_id) == $type->id ? 'selected' : '' }}>
-                                    {{ $type->name }} (Remaining {{ $type->capacity }} rooms)
+                        <label for="room_type_id">Select Room Type</label>
+                        <select name="room_type_id" id="room_type_id" class="form-control">
+                            @foreach ($roomTypes as $roomType)
+                                <option value="{{ $roomType->id }}" {{ $roomType->id == $booking->room_type_id ? 'selected' : '' }}>{{ $roomType->name }}
                                 </option>
                             @endforeach
                         </select>

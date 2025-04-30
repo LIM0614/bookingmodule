@@ -15,4 +15,9 @@ class RoomType extends Model
         'image',
         'amenities',
     ];
+
+    public function rooms()
+    {
+        return $this->hasMany(Room::class);
+    }
 }

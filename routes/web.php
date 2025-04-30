@@ -11,6 +11,7 @@ use App\Http\Controllers\AdminBookingController;
 
 Auth::routes();
 
+Route::get('/transform-xml', [BookingController::class, 'transformXmlToXhtml']);
 
 Route::get('/', function (Request $request) {
     if (auth('admin')->check()) {
@@ -48,6 +49,7 @@ Route::middleware('auth:web')->group(function () {
     Route::post('/bookings/{booking}/cancel', [BookingController::class, 'cancel'])->name('bookings.cancel');
 
 });
+
 
 
 Route::prefix('admin')->name('admin.')->group(function () {

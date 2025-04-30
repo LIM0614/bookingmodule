@@ -41,8 +41,7 @@
             <div class="mb-3">
                 <label class="form-label">🏨 Room Type</label>
                 <input type="text" class="form-control text-white" style="background-color: #6c757d;"
-                    value="{{ $roomType->name }} (剩余 {{ $roomType->capacity }} 间)" readonly>
-                {{-- 隐藏字段，把 ID 一并传给后端 --}}
+                    value="{{ $roomType->name }} " readonly>
                 <input type="hidden" name="room_type_id" value="{{ $roomType->id }}">
             </div>
 
