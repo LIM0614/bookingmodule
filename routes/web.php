@@ -11,6 +11,16 @@ use App\Http\Controllers\AdminBookingController;
 
 Auth::routes();
 
+Route::get('/bookings/xml', function () {
+    $path = storage_path('app/public/bookings.xml');
+
+    if (file_exists($path)) {
+        return response()->file($path);
+    } else {
+        return response()->json(['error' => 'Booking XML not found'], 404);
+    }
+});
+
 Route::get('/transform-xml', [BookingController::class, 'transformXmlToXhtml']);
 
 Route::get('/', function (Request $request) {

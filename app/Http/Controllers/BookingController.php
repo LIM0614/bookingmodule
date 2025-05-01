@@ -117,6 +117,8 @@ class BookingController extends Controller
         // Call the update method from the service
         $booking = $this->bookingService->update($id, $data, $data['user_id']);
 
+        BookingCreated::dispatch();
+
         return redirect()
             ->route('bookings.show', $booking)
             ->with('success', 'Booking successfully updated.');
@@ -134,10 +136,12 @@ class BookingController extends Controller
         try {
             // Call the cancel method from the service
             $this->bookingService->cancel($id, Auth::guard('web')->id());
+            BookingCreated::dispatch();
 
             return redirect()
                 ->route('bookings.cancel.confirm', $id)
                 ->with('success', 'Booking has been successfully cancelled. You will be redirected in 5 seconds.');
+
         } catch (\Exception $e) {
             return redirect()
                 ->route('bookings.cancel.confirm', $id)
